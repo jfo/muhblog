@@ -18,7 +18,7 @@ initsubtree:
 	git checkout master
 
 build: clean
-	npm run build-prod
+	NODE_PRODUCTION=true blager
 
 clean:
 	rm -r build/*
