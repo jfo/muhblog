@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>blog.jfo.click</title>
+    <link>https://blog.jfo.click/</link>
+    <description>Recent content on blog.jfo.click</description>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 29 Aug 2019 00:00:00 +0000</lastBuildDate>
+	<atom:link href="https://blog.jfo.click/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>WebAssembly sections, part 2</title>
+      <link>https://blog.jfo.click/webassembly-sections-part-2/</link>
+      <pubDate>Thu, 29 Aug 2019 00:00:00 +0000</pubDate>
+
+      <guid>https://blog.jfo.click/webassembly-sections-part-2/</guid>
+      <description>Last time I started from the binary format and made a little module that doesn&amp;rsquo;t do anything.
+This is how the rest of this series of posts is going to go&amp;hellip; a bunch of iterative examples building up to a small webassembly program in text format that does some useless stuff but uses all of the possible sections that can appear in a webassembly program. Of course, I won&amp;rsquo;t be exhaustively listing all the instructions or every single thing that can go in any place in the file, as you are free to pore over the ur-docs for that, as I have attempted to do in part here.</description>
+    </item>
+    <item>
+      <title>Wat is up with WebAssembly</title>
+      <link>https://blog.jfo.click/wat-is-up-with-webassembly/</link>
+      <pubDate>Mon, 08 Apr 2019 00:00:00 +0000</pubDate>
+      <guid>https://blog.jfo.click/wat-is-up-with-webassembly/</guid>
+      <description>I&amp;rsquo;ve always been bullish on WebAssembly, and I still am. I think it has a lot of potential to change the way we develop web applications over the long term, and indeed to change what we consider a web application to begin with.
+Wasm is really quite simple, in its way. The specification defines only four numerical types and a handful of operations upon them, plus standards for importing and exporting interfaces and shared memory buffers from and to the surrounding context, whether that is a browser or node, and a few other things.</description>
+    </item>
+    <item>
+      <title>How Zig Do?</title>
+      <link>https://blog.jfo.click/how-zig-do/</link>
+      <pubDate>Thu, 15 Mar 2018 00:00:00 +0000</pubDate>
+      <guid>https://blog.jfo.click/how-zig-do/</guid>
+      <description>1/13/19 Update: This post was written using Zig 0.2.0, and some of the code is out of date. The repository has been updated to work with 0.3.0, inculding (for the moment) trunk. Refer to that to see a simplified use of stdout.
+ Hello and good morning or whatever! Let&amp;rsquo;s write a brainfuck interpreter. &amp;ldquo;Why are you doing this?&amp;rdquo; you might say, but you won&amp;rsquo;t find that answer here.</description>
+    </item>
+  </channel>
+</rss>

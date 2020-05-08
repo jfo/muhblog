@@ -1,0 +1,59 @@
+---
+draft: true
+---
+
+
+hello, let's make mongo.
+
+first, how do you build a complex project?  every programming language and
+environment is different, it's often quite painful to set up a development
+environment for the first time in a new language in general, then there are
+build tools and patterns and defacto standards, this amounts to learning a
+whole set of community standards and meta languages on top of getting started.
+
+I would argue that a lot of the start up cost to programming in general is
+having difficulty getting a hook into all these things! 
+
+but let's talk specifically. Look at a javascript project. what do you look at
+first? 
+
+in general: is there a readme? Always start there. Is there a dependency
+manifest such as cargo.toml or package.json or configure.txt or gemfile? Look
+there. Is there a standard build tool i use? a makefile? a _cmake_ file that
+_generates_ makefiles? Is there a build script? bazel, scons, make? is there a
+building.md?
+
+When thinking about _building_ an executable, there are two layers of
+dependencies to think about. the _buildtime dependencies_ and the _runtime
+dependencies_.
+
+The most obvious example of this is the compiler itself. I need a c compiler in
+order to turn hello_world.c into `hello_world` the executable that targets my
+system architechture, it is a _build time dependency_. I don't ship the
+compiler with the executable though! But what about this: thing that has a
+runtime dependency, even locally. I _do_ ship that, don't I?
+
+This is a trivial example, but it gets hariy quickly. in language communities
+with functional dependency registrys like npm or gem or crates.rs, you can
+generally count on those dependencies being downloadable or available at
+buildtime and that they are versioned immutably or otherwise present
+dependability for reproduction. the fact that you don't have to manage these
+dependencies directly is very helpful, but a little misleading. You are trading
+the management burdon for the need to trust some host or third party. this is
+totally ok! but it _is_ what the tradeoff amounts to.
+
+in languages _without_ a functioning dependency ecosystem or standardized
+dependency management (COUGH C COUGH) you will see many dependencies just
+_checkedinto_ the source repo, often in a `thirdparty` or `vendor` folder. I
+assume that managing these more easily was a motivation or the motivation
+behind git submodules, a widely derided feature of git that is as logical an
+addition as it is difficult to work with.
+
+https://git-scm.com/book/en/v2/Git-Tools-Submodules
+
+No matter, no you are trading the cleanliness and convenience of having all
+that source code hidden away from your source tree for the _power_ to have it
+managed under your control. It doesn't matter if the server goes down
+somewhere, or if you are out of internet, you have the version of code that
+your projects depends on frozen in amber forever in your source repo.
+
