@@ -10,7 +10,7 @@ syncfroms3:
 	aws s3 sync s3://assets.jfo.click/ ./static/s3
 
 # TODO: sort out this damn init
-initsubtree: clean
+initsubtree:
 	git worktree prune
 	git checkout --orphan gh-pages
 	git worktree add -B gh-pages build publish/gh-pages
