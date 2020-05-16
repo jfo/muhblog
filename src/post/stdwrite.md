@@ -11,7 +11,7 @@ How easy is it to write? To run? How easy is it to understand? It's a very
 simple program, of course, one of the simplest, even... just produce a little
 text, and display it, what could be simpler?
 
-It's not fair to judge a language by such a simple cursory example, but it _can_
+It's not fair to judge a language by such a cursory impression, but it _can_
 give you an idea of what a language _values_, and how it works. What does the
 syntax look like? Is it typed? Is it interpreted? You can usually tell a lot at
 a glance.
@@ -23,10 +23,10 @@ print('Hello world!')
 ```
 
 Often, people coming from interpreted languages experience compiled, systems
-languages to be more complex, right off the bat. There is the obvious added
+languages to be more complicated right off the bat. There is the obvious added
 complexity of compiling and running as separate steps, as opposed to simply
 pointing an interpeter at some source code and seeing a result right away, but
-there are often syntactical complexities to go along with that.
+there are often syntactical constructs to go along with that..
 
 At first glance, Rust's hello world looks fairly inert, too:
 
@@ -46,6 +46,8 @@ macro_rules! println {
     })
 }
 ```
+
+TODO: fully expand this example with the nested macros
 
 Which is, uh, well let's just say it's not exactly clear what's happening, with
 the mix of Rust's macro syntax and the proxied calls.
@@ -92,30 +94,31 @@ rb_io_puts(int argc, const VALUE *argv, VALUE out)
 }
 ```
 
+Hello world!
+
 We all know that a languages like Ruby or Python are designed explicitly to
 hide this kind of complexity from us and let us get on with the dirty business
-of munging data blobs or serving web requests or whatnot, and thank goodness
-for that, but wow that's a lot, huh?
+of munging data blobs or serving ads or whatever, and thank goodness for that,
+but wow that's a lot, huh?
 
 ---
 
 I think when people come from interpreted languages that were designed to be
 ergonomic to more systems oriented languages, they're often jarred by
 what they perceive to be inelegant, ugly, and verbose code. And to be sure, it
-_is_ that sometimes, but the tradeoff is explicitly elegance for _control_.
-Specific, granular control over the eventual program that is run. This isn't
-always necessary, in fact it's almost always UNnecessary, to have that much
-control over your program. Obviously, productivity matters, and if your
-business is ___insert business example___, well it's quite obvious that your
-business goals are not going to be met by futzing with manual memory management
-all day ([at least from the macro level, in the general
+_is_ that sometimes, but the tradeoff is explicit: elegance and simplicity for
+_control_.  Specific, granular control over the program that is eventually run.
+This isn't always necessary, in fact it's almost always UNnecessary, to have
+that much control over your program. Obviously, productivity matters, and if
+your business is ___insert business example___, well it's quite obvious that
+your goals are not going to be met by futzing with manual memory management all
+day ([at least from the macro level, in the general
 sense](https://danluu.com/sounds-easy/)).
 
 But if you do need that control, well _you need it_. When every ounce of
 performance is needed, or on embedded systems, etc.
 
 So what in the hello world is actually going on?
-
 
 Let's take a walk
 ---------------
@@ -151,20 +154,20 @@ pub fn main() !void {
 ```
 
 Just like in C, `main` is a special function that marks the entry point to a
-program after it has been compiled as an executable. Also like in C, its
-arguments do not need to be declared in its signature (todo: more on that and
-why).
+program after it has been compiled as an executable. Unlike in C, it accepts no
+arguments (C's main function has a variety of vagaries that make it a bit
+[unique](https://stackoverflow.com/a/4207223)) and command line input is
+available through utility functions to allow easier cross platform use.
 
 It is marked [`pub`](https://ziglang.org/documentation/master/#Keyword-pub) so
-that it is accesible from outside of the immediate module ('module' here
+that it is accessible from outside of the immediate module ('module' here
 referring to nothing more than the top level scope of the current namespace...
 i.e., the file), this is a necessary step since, as the program's entry point,
 `main` would _have_ to be accessible from outside this module.
 
-`fn` is a function functoin, `main()` is the name (and where the argument list would be)
-and `!void` is the return type.
-
-Let's look a little closer at that return type.
+`fn` is the function keyword, `main()` is the name (and where the argument list
+_would_ be) and `!void` is the return type. Looking a little closer at that
+return type.
 
 In C, the return type of a function is declared _before_ anything else. This
 makes a certain amount of sense: it's congruent with how variables are
@@ -173,10 +176,16 @@ will get you that."
 
 In Zig, the return type comes after the function declaration but before the
 function body. This also makes sense! It's the same in Rust and Go, and seems
-to be generally a more modern approach (TODO: why?)
+to be generally a more modern approach. The reason is actually pretty simple:
+doing it this way makes it possible to have a context-free grammar! C and C++
+put the parser in a position where it [has to understand semantics to actually
+_parse_ the source
+code!](https://stackoverflow.com/questions/14589346/is-c-context-free-or-context-sensitive)
 
-As in C, `main` returns void (nothing) and as you can see, so it does in Zig.
-But there is a wrinkle! `void` is preceded by an exclamation mark. This means:
+In Zig, `main` returns `void` (well, actually, it can return a variety of
+things, and if it returns void, it's actually returning
+[`0`](https://github.com/jfo/zig/blob/7381aaf70e0cad92fc52b79f3aa2a0abb7c3ee04/lib/std/start.zig#L241-L244) as a success code, but)
+there is a wrinkle!  `void` is preceded by an exclamation mark. This means:
 "This function is supposed to return `void`, but it _could_ fail and return an
 error." This is an [inferred error
 set](https://ziglang.org/documentation/master/#Inferred-Error-Sets), and
@@ -206,8 +215,7 @@ pub const io = @import("io.zig");
 
 Which is referred to on the `std` variable as `std.io` (again, notice the `pub`
 keyword, without which this declared constant would be inaccesible outside of
-this immediate scope). Going deeper, into `lib/std/io.zig` (TODO: is this
-implicit path _only_ for things in std? anywhere else?)
+this immediate scope). Going deeper, into `lib/std/io.zig`...
 
 ```zig
 pub fn getStdOut() File {
@@ -256,9 +264,9 @@ const Thing = struct {
 };
 
 pub fn main() !void {
-    std.debug.warn("{}\n", .{ Thing.staticMethod(1) });
+    std.debug.warn("{}\n", .{ Thing.staticMethod(1) }); // 42
     const thing = Thing{ .instanceVariable = 1 };
-    std.debug.warn("{}\n", .{ thing.instanceMethod() });
+    std.debug.warn("{}\n", .{ thing.instanceMethod() }); // 1
 }
 ```
 
@@ -298,12 +306,13 @@ class Thing
   end
 end
 
-p Thing::staticMethod(1)
+p Thing::staticMethod(1) # 42
 thing = Thing.new(1)
-p thing.instanceMethod
+p thing.instanceMethod # 1
 ```
 
-There are of course notable differences here! Attempting to call a static method on an _instance_ of a class in ruby
+There are of course notable differences here! Attempting to call a static
+method on an _instance_ of a class in ruby
 
 ```ruby
 p thing.staticMethod 2
@@ -317,7 +326,7 @@ thing.rb:21:in `<main>': undefined method `staticMethod' for #<Thing:0x000000000
 Likewise, the other way:
 
 ```ruby
-p Thing::staticMethod(1)
+p Thing::instanceMethod(1)
 ```
 ```
 thing.rb:18:in `<main>': undefined method `instanceMethod' for Thing:Class (NoMethodError)
@@ -344,11 +353,11 @@ You will get a compiler error, yeah:
 ```
 
 But it's telling you that you passed a `Thing` to the method. This is the
-important point: Calling methods on an instantiated struct implicitly passes
-`self` as the first argument to that method. That's all the magic there is
-here.
+important point: "instance methods" have special access to "instance variables"
+because they have a reference to the struct they are being called on, that's
+all.  That's all the magic there is here.
 
-> Note that there is _also_ nothing special about the word '_self_' here, it is
+> Note that there is _also_ nothing special about the word '_self_', it is
 > just a conventional variable name.
 
 For completeness, the other direction:
@@ -369,7 +378,7 @@ No implicit passing of `self` means an arity error on this call.
 But, to underscore the fact that there is nothing magical happening here, you
 can indeed do this:
 
-```
+```zig
 const thing = Thing{ .instanceVariable = 1 };
 std.debug.warn("{}\n", .{ thing.instanceMethod() });
 std.debug.warn("{}\n", .{ Thing.instanceMethod(thing) });
@@ -477,8 +486,10 @@ call site, a string constant and an [anonymous list
 literal](https://ziglang.org/documentation/master/#Anonymous-List-Literals)
 (whose behavior is unsurprisingly similar to the aformentioned anonymous struct
 literal) of positional arguments meant to be interpolated into the format
-string at points marked by `{}` TODO: talk about formatting, where is the
-definitive list? like c's `%s`, `%i`, etc.
+string at points marked by `{}`. You can pass in [formatting
+options](https://ziglang.org/documentation/0.6.0/std/#std;fmt.format) much like
+c's `printf`.
+
 
 `format` is a long function, there is a lot of bookeeping going on, but the
 meat of it are its calls to `out_stream.writeAll`. Jumping back to that definition:
@@ -509,7 +520,8 @@ pub fn write(self: File, bytes: []const u8) WriteError!usize {
 ```
 
 And now, finally, we're down to the `system` in `systems programming` This
-method operates differently depending on the system it's being used on! At the top of this file `lib/std/fs/file.zig`,
+method operates differently depending on the system it's being used on! At the
+top of this file `lib/std/fs/file.zig`,
 
 ```zig
 const is_windows = std.Target.current.os.tag == .windows;
@@ -518,7 +530,7 @@ const is_windows = std.Target.current.os.tag == .windows;
 I am not on windows, and I will for now ignore the second branch so I don't
 have to get into `async`, so I end up here:
 
-```
+```zig
 return os.write(self.handle, bytes);
 ```
 
@@ -596,3 +608,133 @@ become. This is _just one codepath_ for these calls based on my system! We're
 down here in inline assembly land!
 
 TODO: assembly program
+---------------------
+
+Let's come at this from a slightly different angle. We know that the zig
+compilers job, just like any compiler, is to take _source code_ and turn it
+into something else. Zig is designed to be highly portable, and using llvm as a
+backend means it can target basically anything that llvm targets, with the
+caveat that not all library functions will have the same amount of support on
+all platforms (see the [support
+table](https://ziglang.org/download/0.6.0/release-notes.html#Tier-System)) for
+more detail on that).
+
+So, there are many possible targets, and so there are many possible "something
+else"s for the source to be turned into. But let's look at the most obvious
+case: building an executable that targets my current running system.
+
+The transformation pipeline inside the compiler goes from `source` ->
+`intermediate representation(s)` -> `target`, where `intermediate
+representations` could be many things and many steps (zig has its own IR, as a
+matter of fact, on which it runs its own static analysis processes before
+transforming it to LLVM IR and passing it along). `target`, for me, is x86_64
+machine code, but the last stop _before_ that is assembly.
+
+Because clang is a full compiler toolchain built on llvm, and zig can be used
+as a [drop in replacement for
+clang](https://andrewkelley.me/post/zig-cc-powerful-drop-in-replacement-gcc-clang.html),
+we should be able to use `zig cc` to compile assembly code directly into machine code.
+This step is actually called _assembling_, not compiling, and is done by an
+"assembler" but this is a [distinction without much of a
+difference](http://composition.al/blog/2017/07/30/what-do-people-mean-when-they-say-transpiler/)
+
+`clang` is smart enough to detect a filetype by its extension, so, so is `zig cc`.
+
+I make an empty file:
+
+```
+$ touch hello.s
+```
+
+and assemble it:
+
+```
+$ zig cc hello.s
+```
+
+```
+zig: warning: argument unused during compilation: '-nostdinc' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '-fno-spell-checking' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '-fno-omit-frame-pointer' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '-D _DEBUG' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '-fstack-protector-strong' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '--param ssp-buffer-size=4' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '-isystem /usr/local/include' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '-isystem /usr/include/x86_64-linux-gnu' [-Wunused-command-line-argument]
+zig: warning: argument unused during compilation: '-isystem /usr/include' [-Wunused-command-line-argument]
+lld: error: undefined symbol: main
+>>> referenced by start.S:104 (/home/jfo/code/zig/build/lib/zig/libc/glibc/sysdeps/x86_64/start.S:104)
+>>>               /home/jfo/.cache/zig/stage1/o/ujWleITFBRHwV19Tq0gsSK_F_gRDc7-jgOCip86Un1bhdmx0pIXLGQRxtjMtuntC/Scrt1.o:(_start)
+
+```
+
+Most of this is just telling us that the flags zig is passing to clang by
+default weren't used for anything, which isn't much of a surprise since there
+was nothing to compile! (Strictly speaking, this is a bug in the zig compiler,
+but for our purposes it has no effect) There is a _real_ error here, too.
+
+```
+lld: error: undefined symbol: main
+```
+
+`lld` is the [_linker_](https://lld.llvm.org/) bundled with llvm bundled with
+clang, and so bundled with zig, and it is complaining that this program (which
+is empty) that we're trying to turn into an executable doesn't have an entry
+point. How would you run it? That doesn't make any sense.
+
+We can instead build an "object file" that isn't intended to be executable by
+passing the `-c` flag.
+
+> These options are the _same_ options as clang, as all of these arguments are
+> simply being forwarded to clang along with the compiler flags set by zig as defaults.
+
+
+```
+$ zig cc -c hello.s
+```
+
+This throws all the same warnings as before, but it succeeds, and produces
+`hello.o`, an object file.
+
+Running `file` on this output
+
+```
+$ file hello.o
+```
+
+Will tell us what we have got.
+
+```
+hello.o: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
+```
+
+This is essentially a bundle of machine code that would be suitable for linking
+into other programs during their [own linking
+phase](https://stackoverflow.com/questions/24655839/what-is-the-difference-between-executable-and-relocatable-in-elf-format),
+if there was actually any code in there at all to be used. As it stands,
+there's just the [ELF header](https://lwn.net/Articles/631631/) to identify the
+file type and what I assume to be a bit of metadata and some padding.
+
+But we wanted to actually make an executable, so we need an entry point! What
+does an entry point look like?
+
+In x86 assembly, it looks like:
+
+```
+_start:
+```
+
+write the smallest assembly program,
+the smallest assembly program is returning a code, which means loading it into
+a register and calling the syscall for exit.
+
+delineate between intel syntax and att syntax... note how "noprefix" has no
+effect in clang but needs to be available for gcc. att is the default, mention
+nasm, what's the difference and who cares? Mention how hard it is to find good
+resources, everything either assumes a lot of knowledge or is a reference manual.
+
+assembly split out post host myself on digital ocean and figure out a logging
+situation?  pick up the end of thehello world for zig, talk about the main loop
+and setup cruft that comes out of executable files, that's like
+
+https://stackoverflow.com/questions/17898989/what-is-global-start-in-assembly-language#comment26144653_17899048
