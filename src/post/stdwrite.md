@@ -610,12 +610,12 @@ down here in inline assembly land!
 TODO: assembly program
 ---------------------
 
-Let's come at this from a slightly different angle. We know that the zig
-compilers job, just like any compiler, is to take _source code_ and turn it
-into something else. Zig is designed to be highly portable, and using llvm as a
-backend means it can target basically anything that llvm targets, with the
-caveat that not all library functions will have the same amount of support on
-all platforms (see the [support
+Let's come at this from a slightly different angle: bottom up. We know that the
+zig compilers job, just like any compiler, is to take _source code_ and turn it
+into something else. Zig is highly portable; using llvm as a backend means
+it can target basically anything that llvm targets, with the caveat that not
+all library functions will have the same amount of support on all platforms
+(see the [support
 table](https://ziglang.org/download/0.6.0/release-notes.html#Tier-System)) for
 more detail on that).
 
@@ -625,20 +625,28 @@ case: building an executable that targets my current running system.
 
 The transformation pipeline inside the compiler goes from `source` ->
 `intermediate representation(s)` -> `target`, where `intermediate
-representations` could be many things and many steps (zig has its own IR, as a
-matter of fact, on which it runs its own static analysis processes before
-transforming it to LLVM IR and passing it along). `target`, for me, is x86_64
-machine code, but the last stop _before_ that is assembly.
+representations` could be many things and include many steps. Zig has its own
+IR, as a matter of fact, on which it runs its own static analysis processes
+before transforming it to LLVM IR and passing it along where is could be
+processed through [many possible optimazation and compilation/assemblage
+steps](http://llvm.org/docs/Passes.html) (LLVM calls these "passes").
+`target`, for me, is x86_64 machine code, but the last stop _before_ that is
+assembly.
 
 Because clang is a full compiler toolchain built on llvm, and zig can be used
 as a [drop in replacement for
 clang](https://andrewkelley.me/post/zig-cc-powerful-drop-in-replacement-gcc-clang.html),
 we should be able to use `zig cc` to compile assembly code directly into machine code.
 This step is actually called _assembling_, not compiling, and is done by an
-"assembler" but this is a [distinction without much of a
+"assembler" but tbh this is a [distinction without much of a
 difference](http://composition.al/blog/2017/07/30/what-do-people-mean-when-they-say-transpiler/)
 
-`clang` is smart enough to detect a filetype by its extension, so, so is `zig cc`.
+
+What is the advantage of using `zig cc`? Primarily that you are able to
+reliably use the same toolchain and version of llvm that the version of zig you
+are using relies on. No futzing around with system libraries and linkages, it's
+all just ready to work.
+
 
 I make an empty file:
 
@@ -646,7 +654,8 @@ I make an empty file:
 $ touch hello.s
 ```
 
-and assemble it:
+`clang` is smart enough to detect a filetype by its extension, so, so is `zig cc`.
+
 
 ```
 $ zig cc hello.s
@@ -680,7 +689,7 @@ lld: error: undefined symbol: main
 `lld` is the [_linker_](https://lld.llvm.org/) bundled with llvm bundled with
 clang, and so bundled with zig, and it is complaining that this program (which
 is empty) that we're trying to turn into an executable doesn't have an entry
-point. How would you run it? That doesn't make any sense.
+point. How would you run it? Where would you start?
 
 We can instead build an "object file" that isn't intended to be executable by
 passing the `-c` flag.
@@ -718,23 +727,226 @@ file type and what I assume to be a bit of metadata and some padding.
 But we wanted to actually make an executable, so we need an entry point! What
 does an entry point look like?
 
-In x86 assembly, it looks like:
+In x86 assembly, the default entry point looks like:
 
 ```
 _start:
 ```
 
-write the smallest assembly program,
-the smallest assembly program is returning a code, which means loading it into
-a register and calling the syscall for exit.
 
-delineate between intel syntax and att syntax... note how "noprefix" has no
-effect in clang but needs to be available for gcc. att is the default, mention
-nasm, what's the difference and who cares? Mention how hard it is to find good
-resources, everything either assumes a lot of knowledge or is a reference manual.
+I add that to the file, and try again:
 
-assembly split out post host myself on digital ocean and figure out a logging
-situation?  pick up the end of thehello world for zig, talk about the main loop
-and setup cruft that comes out of executable files, that's like
+```bash
+$ zig cc hello.s
+```
+
+and
+
+```
+lld: error: undefined symbol: main
+>>> referenced by start.S:104 (/home/jfo/code/zig/build/lib/zig/libc/glibc/sysdeps/x86_64/start.S:104)
+>>>               /home/jfo/.cache/zig/stage1/o/ujWleITFBRHwV19Tq0gsSK_F_gRDc7-jgOCip86Un1bhdmx0pIXLGQRxtjMtuntC/Scrt1.o:(_start)
+```
+
+(I have left out the assembler warnings from above).
+
+What? If the default entry point is `_start`, why is it asking for `main`, then?
+
+Looking at the error, it _is_ trying to load `_start`, just not _our_ start.
+When you compile a regular zig or c program with a `main` function, your
+program doesn't _actually_ start at main, it _also_ starts at `_start`, which
+is responsible for doing memory setup and generally getting everything tidy for
+you before your `main` function runs. Remember, here we're just using `zig cc`
+as a pass through for clang, and so the _real_ definition of `_start` resides
+in libc, and looks like
+[this](https://github.com/jfo/zig/blob/master/lib/libc/glibc/sysdeps/x86_64/start.S).
+
+There are two ways I can solve this now. First, I can just make an assembly
+file with `main:` instead... let's try that.
+
+```asm
+main:
+```
+```bash
+$ zig cc hello.s
+```
+
+```bash
+lld: error: undefined symbol: main
+>>> referenced by start.S:104 (/home/jfo/code/zig/build/lib/zig/libc/glibc/sysdeps/x86_64/start.S:104)
+>>>               /home/jfo/.cache/zig/stage1/o/ujWleITFBRHwV19Tq0gsSK_F_gRDc7-jgOCip86Un1bhdmx0pIXLGQRxtjMtuntC/Scrt1.o:(_start)
+```
+
+Ah, remember `pub fn main()`? In addition to being defined, this symbol also
+needs to be available to the linker.  In assembly, that means putting it as a
+`.globl` declaration.
+
+```asm
+.globl main
+main:
+```
+
+Without that, the assembler is free to discard the label since it thinks it's
+not needed for any other steps.
+
+```bash
+$ zig cc hello.s
+```
+
+This assembles! When I run the resulting executable, I get:
+
+```
+Trace/breakpoint trap (core dumped)
+```
+
+This isn't surprising, I've written a program that does nothing. I'm not
+particularly interested in this error right now, the important thing is that I
+got this to assemble.
+
+I'm also not interested in using the libc startup code and `_start` call; I
+want to do everything myself.
+
+I will try to definie my own `.globl _start`:
+
+```asm
+.globl _start
+_start:
+```
+
+```bash
+$ zig cc hello.s
+```
+
+```
+lld: error: duplicate symbol: _start
+>>> defined at start.S:63 (/home/jfo/code/zig/build/lib/zig/libc/glibc/sysdeps/x86_64/start.S:63)
+>>>            /home/jfo/.cache/zig/stage1/o/ujWleITFBRHwV19Tq0gsSK_F_gRDc7-jgOCip86Un1bhdmx0pIXLGQRxtjMtuntC/Scrt1.o:(_start)
+>>> defined at zig-cache/o/UbeRHF13NXWYrl3f0cuxy3OffVcjvaAbWr5e2svkLcYXPpPG03d4JplnyJU7tFJ7/empty.o:(.text+0x0)
+```
+
+Given what we've seen so far, this makes complete sense. `_start` has already
+been defined in the libc code, so simply putting it here results in this error,
+because of course it does.
+
+The linker takes an option to simply not use anything in the standard library,
+which is exactly what I want.
+
+```bash
+$ zig cc -nostdlib hello.s
+```
+```
+./a.out
+```
+
+```
+Segmentation fault (core dumped)
+```
+
+Hello world!
+
+----
+
+Alright, now I've sussed out the precise incantations to go directly from an
+x86 assembly file (`.s`) to an executable. What is the _smallest assembly
+program I can write?_
+
+> TODO: explain att/intel syntax and the directive.
+> delineate between intel syntax and att syntax... note how "noprefix" has no
+> effect in clang but needs to be available for gcc. att is the default, mention
+> nasm, what's the difference and who cares? Mention how hard it is to find good
+> resources, everything either assumes a lot of knowledge or is a reference
+> manual.
+
+That would be a program that simply exits.
+
+```asm
+.intel_syntax noprefix
+.globl _start
+
+_start:
+  mov     rax, 60
+  syscall
+```
+
+What's happening here? I'm just putting `60` into the `rax` register, and then
+making a `syscall`. The syscall looks at the `rax` register and does what the
+code corresponds to, which is `sys_exit`, so the program exits, that's it.
+
+When I compile and run this program, nothing happens, but
+`[strace](https://jvns.ca/blog/2015/04/14/strace-zine/)` tells me that it's
+doing exactly what I expected:
+
+```
+zig cc -nostdlib empty.s && strace ./a.out
+```
+
+```
+execve("./a.out", ["./a.out"], 0x7ffd47b269c0 /* 104 vars */) = 0
+exit(0)                                 = ?
++++ exited with 0 +++
+```
+
+Futhermore, the `sys_exit` syscall looks in the `rdi` register to get the
+_value_ it returns to the calling process. I can put whatever I want in there
+before executing the syscall.
+
+```asm
+.intel_syntax noprefix
+.globl _start
+
+_start:
+  mov     rdi, 0xface
+  mov     rax, 60
+  syscall
+```
+
+
+```
+execve("./a.out", ["./a.out"], 0x7fffa91a9be0 /* 104 vars */) = 0
+exit(64206)                             = ?
++++ exited with 206 +++
+```
+
+You'll notice, that even though I loaded a 32 bit value into the register, and
+`r` prefixed registers are 64 bits wide (todo citation), it only looked at the
+bottom 8 bits. This leads me to believe that error codes must be between 1 and
+255, is this correct?
+
+Running this without strace, nothing happens, which surprised me actually. I
+thought that `0` was a success code and anything else was an error code. This
+is [conventionally the
+case](https://github.com/jfo/zig/blob/7381aaf70e0cad92fc52b79f3aa2a0abb7c3ee04/lib/libc/include/generic-glibc/stdlib.h#L91-L92)!
+But it's up to the caller to interpret that code and respond to it. For my
+little program, there is no error handling that reports back to the user what's
+going on, it just dutifully exits with the value I gave it and that's that.
+
+
+----
+
+TODO: explain this hello world
+
+```asm
+.intel_syntax noprefix
+  .text
+  .globl  _start
+_start:
+  mov     rax, 0x1
+  mov     rdi, 0x1
+  lea     rsi, msg
+  mov     rdx, 14
+  syscall
+  mov     eax, 60
+  xor     edi, edi
+  syscall
+  .section        .rodata,"a"
+msg:
+  .ascii  "Hello, world!\n"
+```
+
+---
+
+Wrap up by examining the generated zig hello world assembly and finding the
+code that the simplest one maps to. How do I get the most straightforward
+output?
 
 https://stackoverflow.com/questions/17898989/what-is-global-start-in-assembly-language#comment26144653_17899048
