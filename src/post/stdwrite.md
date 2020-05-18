@@ -923,7 +923,19 @@ going on, it just dutifully exits with the value I gave it and that's that.
 
 ----
 
-TODO: explain this hello world
+Though the origins of the hello world are well known (it was the very [first
+example](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program) in the
+hugely influential K&R C book), the definition of a hello world has grown over
+the years. Though the canonical example is still "output the literal text
+'Hello World!'", lots of paradigms and systems have their own version of it- my
+favorite is the arduino [blink](https://www.arduino.cc/en/Tutorial/Blink); it's
+the simplest thing you can do with it that proves it's working as intended.
+
+By that measure, the above code is _already_ an assembly hello world in that
+we've compiled it and proved it works! But it's a very small step to get to a
+_real_ hello world, too.
+
+Here it is!
 
 ```asm
 .intel_syntax noprefix
@@ -935,12 +947,25 @@ _start:
   lea     rsi, msg
   mov     rdx, 14
   syscall
-  mov     eax, 60
-  xor     edi, edi
+  mov     rax, 60
+  xor     rdi, edi
   syscall
   .section        .rodata,"a"
 msg:
   .ascii  "Hello, world!\n"
+```
+
+You can see that there's not really that much more here. A little more preamble
+at the top, and then _two_ syscalls instead of one, followed by a little data
+section that actually holds the text we're printing to the screen. Let's go
+through this, line by line.
+
+
+https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
+
+```
+%rax	System call	%rdi	%rsi	%rdx
+1	sys_write	unsigned int fd	const char *buf	size_t count
 ```
 
 ---
