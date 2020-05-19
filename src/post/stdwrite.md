@@ -47,7 +47,7 @@ macro_rules! println {
 }
 ```
 
-TODO: fully expand this example with the nested macros
+TODO: _fully_ expand this example with the nested macros
 
 Which is, uh, well let's just say it's not exactly clear what's happening, with
 the mix of Rust's macro syntax and the proxied calls.
@@ -97,25 +97,25 @@ rb_io_puts(int argc, const VALUE *argv, VALUE out)
 Hello world!
 
 We all know that a languages like Ruby or Python are designed explicitly to
-hide this kind of complexity from us and let us get on with the dirty business
-of munging data blobs or serving ads or whatever, and thank goodness for that,
-but wow that's a lot, huh?
+hide this sort of complexity from us and let us get on with the dirty business
+of munging data blobs or serving web requests or whatever, and thank goodness
+for that, but wow that's a lot, huh?
 
 ---
 
 I think when people come from interpreted languages that were designed to be
 ergonomic to more systems oriented languages, they're often jarred by
 what they perceive to be inelegant, ugly, and verbose code. And to be sure, it
-_is_ that sometimes, but the tradeoff is explicit: elegance and simplicity for
-_control_.  Specific, granular control over the program that is eventually run.
-This isn't always necessary, in fact it's almost always UNnecessary, to have
-that much control over your program. Obviously, productivity matters, and if
-your business is ___insert business example___, well it's quite obvious that
-your goals are not going to be met by futzing with manual memory management all
-day ([at least from the macro level, in the general
-sense](https://danluu.com/sounds-easy/)).
+_is_ sometimes exactly that, but usually, the tradeoff is explicit: elegance
+and simplicity for _control_.  Specific, granular control over the program that
+is eventually run.  It isn't always necessary, in fact almost always
+UNnecessary, to have _that_ much control over your program. Obviously,
+productivity matters, and if your business is ___insert business example___,
+well it's quite obvious that your goals are not going to be met by futzing with
+manual memory management all day ([at least from the macro level, in the
+general sense](https://danluu.com/sounds-easy/)).
 
-But if you do need that control, well _you need it_. When every ounce of
+But if you do need that control, well then _you need it_. When every ounce of
 performance is needed, or on embedded systems, etc.
 
 So what in the hello world is actually going on?
@@ -163,11 +163,12 @@ It is marked [`pub`](https://ziglang.org/documentation/master/#Keyword-pub) so
 that it is accessible from outside of the immediate module ('module' here
 referring to nothing more than the top level scope of the current namespace...
 i.e., the file), this is a necessary step since, as the program's entry point,
-`main` would _have_ to be accessible from outside this module.
+`main` would _have_ to be accessible from outside the immediate scope.
 
-`fn` is the function keyword, `main()` is the name (and where the argument list
-_would_ be) and `!void` is the return type. Looking a little closer at that
-return type.
+`fn` is the function keyword. 
+
+`main()` is the name of the function (and where the argument list _would_ be)
+and `!void` is the return type. Looking a little closer at that return type:
 
 In C, the return type of a function is declared _before_ anything else. This
 makes a certain amount of sense: it's congruent with how variables are
@@ -178,16 +179,17 @@ In Zig, the return type comes after the function declaration but before the
 function body. This also makes sense! It's the same in Rust and Go, and seems
 to be generally a more modern approach. The reason is actually pretty simple:
 doing it this way makes it possible to have a context-free grammar! C and C++
-put the parser in a position where it [has to understand semantics to actually
+put the parser in a position where it [has to understand semantics to even just
 _parse_ the source
 code!](https://stackoverflow.com/questions/14589346/is-c-context-free-or-context-sensitive)
 
 In Zig, `main` returns `void` (well, actually, it can return a variety of
-things, and if it returns void, it's actually returning
-[`0`](https://github.com/jfo/zig/blob/7381aaf70e0cad92fc52b79f3aa2a0abb7c3ee04/lib/std/start.zig#L241-L244) as a success code, but)
-there is a wrinkle!  `void` is preceded by an exclamation mark. This means:
-"This function is supposed to return `void`, but it _could_ fail and return an
-error." This is an [inferred error
+things, and if it returns void (which is just a way of saying it doesn't return
+anything at all)), it's actually returning
+[`0`](https://github.com/jfo/zig/blob/7381aaf70e0cad92fc52b79f3aa2a0abb7c3ee04/lib/std/start.zig#L241-L244)
+as a success code, but) there is a wrinkle!  `void` is preceded by an
+exclamation mark. This means: "This function is supposed to return `void`, but
+it _could_ fail and return an error." This is an [inferred error
 set](https://ziglang.org/documentation/master/#Inferred-Error-Sets), and
 whenever a function that could fail is called, the compiler will enforce that
 you handle that error. More on Zig's error handling some other time, for now it
@@ -443,7 +445,6 @@ For now, take careful note that `write` is being passed to `io.OutStream` as
 the `writeFn` argument, which will eventually be what is called to print to
 standard out.
 
-
 Alright, phew, so that's
 
 ```zig
@@ -460,7 +461,6 @@ try stdout.print("Hello, {}!\n", .{"world"});
 ```
 
 The definition of this "instance method" lives in `lib/std/io/outStream.zig`.
-
 
 ```zig
 pub fn print(self: Self, comptime format: []const u8, args: var) Error!void {
@@ -481,7 +481,16 @@ pub fn format(
 ```
 
 Ok we're getting closer: `out_stream` is in our case, the `File` from way back
-at the beginning. The other two arguments are being passed in at the top level
+at the beginning. 
+
+> "Almost - it's the file.outStream() return value. Which is just the
+> "Context" with the write function as part of the type. The way streams
+> work in zig right now is with "duck typing". It optimizes well, the API
+> is mostly good, but it can produce bloated code, and in some cases the
+> API is annoyingly too generic. Sometimes it would be nice to accept a
+> non-"var" type as a stream parameter."
+
+The other two arguments are being passed in at the top level
 call site, a string constant and an [anonymous list
 literal](https://ziglang.org/documentation/master/#Anonymous-List-Literals)
 (whose behavior is unsurprisingly similar to the aformentioned anonymous struct
@@ -490,10 +499,8 @@ string at points marked by `{}`. You can pass in [formatting
 options](https://ziglang.org/documentation/0.6.0/std/#std;fmt.format) much like
 c's `printf`.
 
-
 `format` is a long function, there is a lot of bookeeping going on, but the
 meat of it are its calls to `out_stream.writeAll`. Jumping back to that definition:
-
 
 ```zig
 pub fn writeAll(self: File, bytes: []const u8) WriteError!void {
@@ -505,7 +512,6 @@ pub fn writeAll(self: File, bytes: []const u8) WriteError!void {
 ```
 
 We can see that it calls into `self.write`, which looks like:
-
 
 ```zig
 pub fn write(self: File, bytes: []const u8) WriteError!usize {
@@ -539,7 +545,6 @@ bytes and bytes to write (by this point formatted with those interpolated
 values from the call site). Here's where it gets good.
 
 `os.write` calls into `system.write` which is defined _per architecture_
-
 
 ```zig
 pub const system = if (@hasDecl(root, "os") and root.os != @This())
@@ -603,11 +608,11 @@ pub fn syscall3(number: SYS, arg1: usize, arg2: usize, arg3: usize) usize {
 
 Not so simple a program now, is it? Remember, these syscalls differ for each
 architecture, the compiler produces machine code based on what you're
-targeting, and I think that it is easy to forget how complicated that can
-become. This is _just one codepath_ for these calls based on my system! We're
-down here in inline assembly land!
+targeting, so this is just one of many possible paths. I think that it is easy
+to forget how complicated that can become. We're down here in inline assembly
+land already!
 
-TODO: assembly program
+Assembly program
 ---------------------
 
 Let's come at this from a slightly different angle: bottom up. We know that the
@@ -647,7 +652,6 @@ reliably use the same toolchain and version of llvm that the version of zig you
 are using relies on. No futzing around with system libraries and linkages, it's
 all just ready to work.
 
-
 I make an empty file:
 
 ```
@@ -655,7 +659,6 @@ $ touch hello.s
 ```
 
 `clang` is smart enough to detect a filetype by its extension, so, so is `zig cc`.
-
 
 ```
 $ zig cc hello.s
@@ -697,7 +700,6 @@ passing the `-c` flag.
 > These options are the _same_ options as clang, as all of these arguments are
 > simply being forwarded to clang along with the compiler flags set by zig as defaults.
 
-
 ```
 $ zig cc -c hello.s
 ```
@@ -732,7 +734,6 @@ In x86 assembly, the default entry point looks like:
 ```
 _start:
 ```
-
 
 I add that to the file, and try again:
 
@@ -961,6 +962,10 @@ section that actually holds the text we're printing to the screen. Let's go
 through this, line by line.
 
 
+TODO: line by line explanation of the above, followed by finding the relevant
+snippit in the output of the zig hello world. This seems challenging as I don't
+know what all llvm is doing to it, can't seem to find it exactly.
+
 https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
 
 ```
@@ -969,9 +974,4 @@ https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
 ```
 
 ---
-
-Wrap up by examining the generated zig hello world assembly and finding the
-code that the simplest one maps to. How do I get the most straightforward
-output?
-
 https://stackoverflow.com/questions/17898989/what-is-global-start-in-assembly-language#comment26144653_17899048
