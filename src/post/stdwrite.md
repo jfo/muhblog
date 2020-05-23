@@ -1,5 +1,5 @@
 ---
-title: Printing
+title: Hello hello world
 draft: true
 ---
 
@@ -940,18 +940,17 @@ Here it is!
 
 ```asm
 .intel_syntax noprefix
-  .text
-  .globl  _start
+.globl  _start
+
 _start:
   mov     rax, 0x1
   mov     rdi, 0x1
   lea     rsi, msg
   mov     rdx, 14
   syscall
+  xor     rdi, rdi
   mov     rax, 60
-  xor     rdi, edi
   syscall
-  .section        .rodata,"a"
 msg:
   .ascii  "Hello, world!\n"
 ```
@@ -961,17 +960,110 @@ at the top, and then _two_ syscalls instead of one, followed by a little data
 section that actually holds the text we're printing to the screen. Let's go
 through this, line by line.
 
+```asm
+.intel_syntax noprefix
+```
 
-TODO: line by line explanation of the above, followed by finding the relevant
-snippit in the output of the zig hello world. This seems challenging as I don't
-know what all llvm is doing to it, can't seem to find it exactly.
+Assembly comes in different flavors, afaict, [it doesn't really matter which
+you use or
+prefer](https://stackoverflow.com/questions/972602/limitations-of-intel-assembly-syntax-compared-to-att),
+so here I have decided to use intel syntax.
 
-https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
+An interesting note here, is that llvm [doesn't need you to explicitly say `noprefix`](https://github.com/llvm-mirror/llvm/blob/2c4ca6832fa6b306ee6a7010bfb80a3f2596f824/lib/Target/X86/AsmParser/X86AsmParser.cpp#L3563-L3584) but `gcc` _does_.
+
+Trying to compile in gcc gives me errors:
+
+```
+hello.s: Assembler messages:
+hello.s:4: Error: ambiguous operand size for `mov'
+hello.s:5: Error: ambiguous operand size for `mov'
+hello.s:6: Error: too many memory references for `lea'
+hello.s:7: Error: ambiguous operand size for `mov'
+hello.s:9: Error: ambiguous operand size for `mov'
+hello.s:10: Error: too many memory references for `xor'
+```
+
+but it works just fine with clang.
+
+```asm
+.globl  _start
+```
+
+We know this one: marking the `_start` symbol available to the linker.
+
+Next, on the the body of the program:
+
+```asm
+_start:
+  mov     rax, 0x1
+  mov     rdi, 0x1
+  lea     rsi, msg
+  mov     rdx, 14
+  syscall
+```
+
+Looking at [this chart of linux
+syscalls](https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/),
+I can see that what is going to be in `rax` when I reach `syscall` is `1`,
+which corresponds to the `SYSWRITE` system call. It's "arguments" live in the
+registers `rdi`, `rsi`, and `rdx`:
+
 
 ```
 %rax	System call	%rdi	%rsi	%rdx
 1	sys_write	unsigned int fd	const char *buf	size_t count
 ```
 
+Where `fd` (file descriptor) is for the _output stream_, `buf` is a _pointer to
+the buffer from which we want to write_ and `count` is the _number of bytes we
+want to write_.
+
+What are we putting into those registers, then?
+
+In `rax`, we insert the syscall number for sys_write: `1`
+
+`rdi`: The file descriptor for `stdout`, [defined by
+POSIX](https://en.wikipedia.org/wiki/Standard_streams#Standard_output_(stdout))
+to be `1`
+
+`rsi`: a pointer to the buffer we write from. Here, we see the [`lea`
+instruction](https://stackoverflow.com/a/57796189/2727670) for "load effective
+address", and the right hand value is a label `msg` that is defined at the bottom of the file:
+
+```
+msg:
+  .ascii  "Hello, world!\n"
+```
+
+Finally, in `rdx` we put in `14`, the length of the buffer. It is not runtime
+known, since there is no runtime!
+
+With all of these loaded into the appropriate registers, 
+
+```
+syscall
+```
+
+Executes `sys_write` and writes the contents of the memory buffer to stdout.
+
+The remaining three lines:
+
+```asm
+xor     rdi, rdi
+mov     rax, 60
+syscall
+```
+
+Might be familiar; we're loading something into `rdi` and calling `sys_exit`
+(60), just like the first example. In this case though, we're `xor`ing `rdi`
+with itself, which is the same thing as setting it to `0`: the success code.
+
+And that's it!
+
+
+
+TODO: map this asm to the zig output.
+
 ---
+
 https://stackoverflow.com/questions/17898989/what-is-global-start-in-assembly-language#comment26144653_17899048
