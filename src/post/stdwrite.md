@@ -1,6 +1,6 @@
 ---
 title: Hello hello world
-draft: true
+date: 2020-08-03
 ---
 
 TODO: maybe only reference 0.6.0 docs as they might not be as ephemeral and also

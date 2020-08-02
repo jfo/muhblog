@@ -1,5 +1,6 @@
 ---
 url: about
+skip_catalog: true
 ---
 
 This is the about page
