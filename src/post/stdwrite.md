@@ -1,9 +1,7 @@
 ---
-title: Hello hello world
+title: Hello "Hello world!"
 date: 2020-08-03
 ---
-
-TODO: maybe only reference 0.6.0 docs as they might not be as ephemeral and also
 
 Languages are often judged initially on their "[Hello,
 world!](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program)" program.
@@ -24,11 +22,11 @@ print('Hello world!')
 
 Often, people coming from interpreted languages experience compiled, systems
 languages to be more complicated right off the bat. There is the obvious added
-complexity of compiling and running as separate steps, as opposed to simply
+complexity of compiling and running being separate steps, as opposed to simply
 pointing an executable at some source code and seeing a result right away, but
-there are often syntactical constructs to go along with that..
+there are often syntactical constructs to go along with that...
 
-At first glance, Rust's hello world looks fairly inert, too:
+At first glance, Rust's hello world looks fairly inert, as well:
 
 ```rust
 fn main() {
@@ -96,12 +94,12 @@ fn print_to<T>(
 
 ```
 
-Which is, uh, well let's just say it's not exactly clear what's happening at a
-glance. There is a lot going on here!
+Which is, uh, well let's just say it's not exactly _simple_ looking now? There
+is a lot going on here!
 
-Now, to be clear, I'm not faulting Rust here at all, my point is exactly the
+To be clear, I'm not faulting Rust here at all, my point is exactly the
 opposite actually, in that there is _always_ necessarily more going on in a
-hello world than `puts "la da da"` or similar would have you believe on its
+"Hello world!" than `puts "la de da"` or similar would have you believe on its
 face. Speaking of Ruby's `puts`, what _is_ the code that runs `puts` in the
 Ruby interpreter itself, which is written in C?
 
@@ -146,33 +144,37 @@ Hello world!
 
 We all know that a languages like Ruby or Python are designed explicitly to
 hide this sort of complexity from us and let us get on with the dirty business
-of munging data blobs or serving web requests or whatever, and thank goodness
-for that, but wow that _is_ a lot, isn't it?
+of munging data blobs or serving web requests or solving sudokus or whatever,
+and thank goodness for that, but wow that is _quite_ a lot, isn't it?
 
 ---
 
-I think when people come from languages that were designed to be ergonomic to
-more systems oriented languages, they're often jarred by what they perceive to
-be inelegant, ugly, and verbose code. And to be sure, it _is_ sometimes exactly
-that, but usually, the tradeoff is explicit: elegance and simplicity for
-_control_...  for specific, granular control over the program that is
-eventually run.  It isn't always necessary, in fact almost always UNnecessary,
+When people come from languages that were designed to be ergonomic to more
+systems oriented languages, they're often jarred by what they perceive to be
+code thatis inelegant, ugly, and verbose. To be sure, it sometimes _is_ exactly
+that... (although anyone who has worked with a "pretty" language in a production
+codebase knows that those are not immune to these descriptors either).
+
+Usually, the tradeoff is explicit: elegance and simplicity for
+_control_...  specific and granular _control_, over the program that will
+eventually be run.  It isn't always necessary, in fact it is almost always _un_necessary,
 to have _that_ much control over your program. Obviously, productivity matters,
-and if your business is *_insert business_*, well it's quite likely
-that your goals are not going to be optimally met by futzing with manual memory
+and if your business is *_insert viable business_*, well it's likely that your
+goals are not going to be optimally met by futzing with manual memory
 management all day ([at least from the macro level, in the general
 sense](https://danluu.com/sounds-easy/)).
 
 But what if you _do_ need that control? Well then, _you need it_. When every
-ounce of performance is necessary, or on embedded systems, or when writing code
-for some bespoke or otherwise uncommon processor.
+ounce of performance actually is necessary, or on embedded systems with hard
+memory constraints, or when writing code for some bespoke or otherwise uncommon
+processor.
 
 I'm going to choose one language, Zig, and dive deep into its hello world, but
 it is important to note here that my point is not primarily about Zig, it's
-about how all languages have to contend with an enormous amount of complexity
+about how _all_ languages have to contend with an enormous amount of complexity
 in order to do _anything_, even the simplest of tasks like a hello world
 program. Complexity that is, for the most part, hidden from us in our day to
-day.  So what in the hello world is _actually_ going on then?
+day. So what in the hello world is _actually_ going on then?
 
 > I'll be using the most current minor release version of Zig: 0.6.0.
 
@@ -207,6 +209,7 @@ pub fn main() !void {
   //...
 }
 ```
+
 Just like in C, `main` is a special function that marks the entry point to a
 program after it has been compiled as an executable. Unlike in C, it accepts no
 arguments (C's main function has a variety of vagaries that make it a bit
@@ -257,7 +260,7 @@ const stdout = std.io.getStdOut().outStream();
 
 So, we can see that this is a call into a standard library function (`std`)
 that returns something that we assign to `const stdout`. Standard out (stdout) and
-standard err (stderr) may be familiar concepts from the shell, but what does it
+standard error (stderr) may be familiar concepts from the shell, but what does it
 mean to be referring to `stdout` here in this program? What exactly _is_
 `stdout`? Whatever it is, it's being returned by the call to `outStream()`,
 which is a method called on the return value of `std.io.getStdOut()`, so we
@@ -389,7 +392,7 @@ thing.rb:18:in `<main>': undefined method `instanceMethod' for Thing:Class (NoMe
 ```
 
 Ruby is a full throated object oriented language, and so of course its
-underlying class abstraction is more robust than this facsimile of it in Zig,
+underlying class abstraction is more robust than this facsimile of one in Zig,
 but the effect of that is that, well, there's really nothing special about a
 zig "instance" vs "static" method, as they are simply functions defined on the
 struct that _happen_ to be available through multiple calling conventions.
@@ -531,7 +534,7 @@ pub fn format(
 }
 ```
 
-Ok we're getting closer: `out_stream` is in our case, the `File` from way back
+Ok, getting closer: `out_stream` is in this case, the `File` from way back
 at the beginning.
 
 > [Andy](https://andrewkelley.me) said: "Almost - it's the file.outStream()
@@ -544,7 +547,7 @@ at the beginning.
 The other two arguments are being passed in at the top level
 call site, a string constant and an [anonymous list
 literal](https://ziglang.org/documentation/0.6.0/#Anonymous-List-Literals)
-(whose behavior is unsurprisingly similar to the aformentioned anonymous struct
+(whose behavior is unsurprisingly similar to the aforementioned anonymous struct
 literal) of positional arguments meant to be interpolated into the format
 string at points marked by `{}`. You can pass in [formatting
 options](https://ziglang.org/documentation/0.6.0/std/#std;fmt.format) much like
@@ -586,7 +589,8 @@ const is_windows = std.Target.current.os.tag == .windows;
 ```
 
 I am not on windows, and I will for now ignore the second branch so I don't
-have to get into `async`, so I end up here:
+have to get into `async` (that's a [whole other
+potato](https://www.youtube.com/watch?v=zeLToGnjIUM)!), so I end up here:
 
 ```zig
 return os.write(self.handle, bytes);
@@ -668,13 +672,13 @@ compiler has some wiggle room.
 
 Not so _simple_ a program now, is it? Remember, these syscalls differ for each
 architecture, the compiler produces machine code based on what you're
-targeting, so this is just one of many possible paths. I think that it is very
-easy to forget how complicated this can quickly become when you poke at it!
+targeting, so this is just one of _many_ possible paths. I think that it is very
+easy to forget how complicated this can quickly become when you poke around in the details.
 
-Bottoms up
------------
+Bottoms up 🍺
+--------------
 
-Let's come at this from a slightly different angle now. We know that the
+Let me come at this from a slightly different angle now. We know that the
 Zig compiler's job, just like any compiler, is to take _source code_ and turn it
 into something else. Zig is highly portable; using llvm as a backend means
 it can target basically anything that llvm targets, with the caveat that not
@@ -695,28 +699,30 @@ before transforming it to LLVM IR and passing it along where is could be
 processed through [many possible optimazation and compilation/assemblage
 steps](http://llvm.org/docs/Passes.html) (LLVM calls these "passes").
 `target`, for me, is x86_64 machine code, but the last stop _before_ that,
-conceptually, is assembly.
+conceptually as well as most probably actually, is assembly itself.
 
 Because clang is a full compiler toolchain built on llvm, and Zig can be used
 as a [drop in replacement for
 clang](https://andrewkelley.me/post/zig-cc-powerful-drop-in-replacement-gcc-clang.html),
 we should be able to use `zig cc` to compile assembly code directly into machine code.
 This step is actually called _assembling_, not compiling, and is done by an
-"assembler" but tbh this is a [distinction without much of a
-difference](http://composition.al/blog/2017/07/30/what-do-people-mean-when-they-say-transpiler/)
+"assembler," instead of a compiler, but tbqh and imho these are [distinctions
+without much of a
+difference](http://composition.al/blog/2017/07/30/what-do-people-mean-when-they-say-transpiler/).
 
 What is the advantage of using `zig cc`? Primarily that you are able to
 reliably use the same toolchain and version of llvm that the version of zig you
 are using relies on. No futzing around with system libraries and linkages, it's
 all just ready to work.
 
-So! I make an empty file:
+So! I'll make an empty file:
 
 ```
 $ touch hello.s
 ```
 
-`clang` is smart enough to detect a filetype by its extension, so, so is `zig cc`.
+`clang` is smart enough to detect a filetype by its extension, and so, so is
+`zig cc`.
 
 ```
 $ zig cc hello.s
@@ -750,7 +756,7 @@ lld: error: undefined symbol: main
 `lld` is the [_linker_](https://lld.llvm.org/) bundled with llvm bundled with
 clang, and so bundled with zig, and it is complaining that this program (which
 is empty) that we're trying to turn into an executable doesn't have an entry
-point. How would you run it? Where would you start? A reasonable complaint.
+point. How would you run it? Where would you start? A reasonable complaint, this one.
 
 We can instead build an "object file" that isn't intended to be executable by
 passing the `-c` flag.
@@ -765,13 +771,14 @@ $ zig cc -c hello.s
 This throws all the same warnings as before, but it succeeds, and produces
 `hello.o`, an object file.
 
-Running `file` on this output
+Running [`file`](https://en.wikipedia.org/wiki/File_%28command%29) on this
+output
 
 ```
 $ file hello.o
 ```
 
-Will tell us what we have got.
+Will tell us what we've got.
 
 ```
 hello.o: ELF 64-bit LSB relocatable, x86-64, version 1 (SYSV), not stripped
@@ -858,7 +865,7 @@ This assembles! When I run the resulting executable, I get:
 Trace/breakpoint trap (core dumped)
 ```
 
-This isn't surprising, I've written a program that does nothing. I'm not
+This isn't surprising, I've written a program that has no instructions. I'm not
 particularly interested in this error right now, the important thing is that I
 got this to assemble.
 
@@ -927,7 +934,7 @@ _start:
 What's happening here? I'm just putting a static value: `60`, into the `rax`
 register, and then making a `syscall`. The syscall looks at the `rax` register
 and does what the value inside of it corresponds to, which is `sys_exit`, so
-the program exits, that's it.
+the program exits. That's it.
 
 When I compile and run this program, nothing happens, but
 `[strace](https://jvns.ca/blog/2015/04/14/strace-zine/)` tells me that it's
@@ -964,10 +971,12 @@ exit(64206)                             = ?
 +++ exited with 206 +++
 ```
 
-You'll notice, that even though I loaded a 32 bit value into the register, and
-`r` prefixed registers are 64 bits wide (todo citation), it only looked at the
-bottom 8 bits. This leads me to believe that error codes must be between 1 and
-255, is this correct? Yes it is. todo citation
+> You'll notice, that even though I loaded a 16 bit value into the register
+> (`0xface`, which is equivalent to `64206`), and `r` prefixed registers are 64
+> bits wide, it only looked at the bottom 8 bits (`0xce` or `206`). This leads me
+> to believe that error codes must be between 1 and 255. [It seems as though](http://mazack.org/unix/errno.php) there are only 131 actual specified
+> standard errors, so I am sure this is some ancient magick that limits the
+> enumerated error types to 8 bits from the kernel's perspective.
 
 Running this without strace, nothing happens, which surprised me, actually. I
 thought that `0` was a success code and anything else was an error code. This
@@ -984,12 +993,13 @@ the years. Though the canonical example is still "output the literal text
 'Hello World!'", lots of paradigms and systems have their own version of it- my
 favorite is the arduino [blink](https://www.arduino.cc/en/Tutorial/Blink); it's
 the simplest thing you can do with it that proves it's working as intended.
+I've written about this quality [previously](/fizzbuzz-is-a-jazz-standard/).
 
-By that measure, the above code is _already_ an assembly hello world in that
-we've compiled it and proved it works! But it's a very small step to get to a
-_real_ hello world, too.
+By that measure, the above code is _already_ an assembly "Hello World!" in that
+we've compiled it and proved that it works. But it's a very small step from here to get
+to a _literal_ "Hello World!"
 
-Here it is!
+Here it is:
 
 ```asm
 .intel_syntax noprefix
@@ -1055,10 +1065,12 @@ which corresponds to the `SYSWRITE` system call. Its "arguments" live in the
 registers `rdi`, `rsi`, and `rdx`:
 
 
-todo: table markdown
 ```
-%rax	System call	%rdi	%rsi	%rdx
-1	sys_write	unsigned int fd	const char *buf	size_t count
+%rax: 1
+System call: sys_write
+%rdi:  unsigned int fd
+%rsi: const char *buf
+%rdx: size_t count
 ```
 
 Where `fd` (file descriptor) is for the _output stream_, `buf` is a _pointer to
@@ -1067,7 +1079,7 @@ want to write_.
 
 What are we putting into those registers, then?
 
-In `rax`, we insert the syscall number for sys_write: `1`
+In `rax`, we insert the syscall number for `sys_write`: `1`
 
 `rdi`: The file descriptor for `stdout`, [defined by
 POSIX](https://en.wikipedia.org/wiki/Standard_streams#Standard_output_(stdout))
@@ -1107,14 +1119,14 @@ with itself, which is the same thing as setting it to `0`: the success code.
 
 And that's it!
 
-coda:
+Coda:
 -----
 
-My intention now was to find _exactly_ where the zig compiler emits these
+My intention from here was to find _exactly_ where the zig compiler emits these
 _exact_ instructions. And it _does_ do that, sort of... I mean, it _has_ to,
 because these are the instructions to do this operation on x86. You may have
 noticed, too, that the pertinent registers figure prominently in the `syscall3`
-inline asm from above... `rax`, `rdi`, `rdx`, and `rsi` as well:
+inline asm from above... `rax`, `rdi`, `rdx`, and `rsi`:
 
 ```
 // ...
@@ -1133,12 +1145,22 @@ creative. And I suppose the specifics of the compiler's output from this command
 $ zig build-exe hello.zig -femit-asm --strip --single-threaded --release-small
 ```
 
-are in the end a bit extraneous to my ultimate point, which is that _hello
+are in the end a bit extraneous to my ultimate point, which is that _even hello
 world is complicated_.
 
-It is, canonically, the "simplest" program you can write, and it is built on top
-of _heaps_ of abstract complexity that for the most part, none of us ever
-really think about. Do you remember the first time you heard some systems
-engineer refer to C as a high level langauge? Did it sound weird? Do you
-remember the first time you realized that it actually _is_ a high level
+It is, canonically, the "simplest" program you can write, and yet it is built
+on top of _heaps_ of abstracted complexity that for the most part, none of us
+ever really think about all that much. Do you remember the first time you heard
+some systems engineer refer to C as a high level langauge? Did it sound weird?
+Do you remember the first time you realized that it actually _is_ a high level
 language?
+
+As programmers, our sharpest tool is abstraction, our strongest tool is
+abstraction, and our most useful tool is abstraction. It is in some sense the
+only thing we really do: turn information and transformations upon
+information into other forms of meta information that we manipulate with even
+more abstractions. The whole idea is that we deal with emergent complexity and
+then tuck it neatly beneath an interface of some sort and then don't ever think
+about it again until we have to. But it's still there, bubbling under the crust
+of the world we're continuously saying hello to, and it's worth it sometimes to
+dig down a little deeper and marvel at the gems.
