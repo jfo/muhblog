@@ -1,6 +1,7 @@
 ---
 title: Hello "Hello world!"
-date: 2020-08-03
+date: 2020-08-15
+syndicate: true
 ---
 
 Languages are often judged initially on their "[Hello,
