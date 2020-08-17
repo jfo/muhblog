@@ -46,15 +46,9 @@ macro_rules! println {
 }
 ```
 
-You'll notice that this _also_ has a macro _inside of it._ This calls into `print!` which expands to call into
-
-```rust
-macro_rules! print {
-    ($($arg:tt)*) => ($crate::io::_print($crate::format_args!($($arg)*)));
-}
-```
-
-`io::_print` which calls into
+You'll notice that this _also_ has a macro _inside of it._ This matches on the
+second case (because there is an argument present) and calls into
+`$crate::format_args_nl!` and passes the result of that to `$crate::io::_print`
 
 ```rust
 pub fn _print(args: fmt::Arguments<'_>) {
@@ -938,7 +932,7 @@ and does what the value inside of it corresponds to, which is `sys_exit`, so
 the program exits. That's it.
 
 When I compile and run this program, nothing happens, but
-`[strace](https://jvns.ca/blog/2015/04/14/strace-zine/)` tells me that it's
+[`strace`](https://jvns.ca/blog/2015/04/14/strace-zine/) tells me that it's
 doing exactly what I expected:
 
 ```
