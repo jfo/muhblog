@@ -922,7 +922,7 @@ _start:
   syscall
 ```
 
-> I am using inter syntax here, the first line tells the assembler that.  An
+> I am using intel syntax here, the first line tells the assembler that.  An
 > interesting note here, is that llvm [doesn't need you to explicitly say `noprefix`](https://github.com/llvm-mirror/llvm/blob/2c4ca6832fa6b306ee6a7010bfb80a3f2596f824/lib/Target/X86/AsmParser/X86AsmParser.cpp#L3563-L3584)
 > but `gcc` _does_, so it makes sense to always use it.
 
